@@ -11,10 +11,8 @@ def test_unlisted_domain_returns_allow():
 def test_domain_matching_is_case_insensitive():
     assert True
 
-
 def test_domain_is_trimmed_of_whitespace():
     assert True
-
 
 def test_subdomain_behavior_v1():
     assert True
