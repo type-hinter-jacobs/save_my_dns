@@ -1,5 +1,5 @@
 # To be implemented:
-# from src.rules import evaluate_domain
+from src.rules import evaluate_domain
 
 def test_blocked_domain_returns_block():
     denylist = ["porn.com"]
@@ -14,9 +14,8 @@ def test_unlisted_domain_returns_allow():
     denylist = ["porn.com"]
     domain = "google.com"
 
-    # result = evaluate_domain(domain, denylist)
-    # assert result == "ALLOW"
-    assert True
+    result = evaluate_domain(domain, denylist)
+    assert result == "ALLOW"
 
 
 def test_domain_matching_is_case_insensitive():
