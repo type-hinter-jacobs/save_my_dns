@@ -5,9 +5,8 @@ def test_blocked_domain_returns_block():
     denylist = ["porn.com"]
     domain = "porn.com"
 
-    # result = evaluate_domain(domain, denylist)
-    # assert result == "BLOCK"
-    assert True
+    result = evaluate_domain(domain, denylist)
+    assert result == "BLOCK"
 
 
 def test_unlisted_domain_returns_allow():
