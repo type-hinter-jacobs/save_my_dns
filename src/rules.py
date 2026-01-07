@@ -2,7 +2,7 @@
 
 def evaluate_domain(domain, denylist):
   # convert string to all lowercase letters
-  domain = domain.lower()
+  domain = domain.strip().lower()
   # if domain present in the denylist list return BLOCK
   if domain in denylist:
     return "BLOCK"
