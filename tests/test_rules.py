@@ -21,9 +21,8 @@ def test_domain_matching_is_case_insensitive():
     denylist = ["porn.com"]
     domain = "PORN.COM"
 
-    # result = evaluate_domain(domain, denylist)
-    # assert result == "BLOCK"
-    assert True
+    result = evaluate_domain(domain, denylist)
+    assert result == "BLOCK"
 
 
 def test_domain_is_trimmed_of_whitespace():
