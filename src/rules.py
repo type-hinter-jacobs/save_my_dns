@@ -1,6 +1,6 @@
 def evaluate_domain(domain, denylist):
   # convert list elements to lowercase and strip whitespaces
-  denylist = [domain.strip().lower() for domain in denylist]
+  denylist = [d.strip().lower() for d in denylist]
   # convert string to all lowercase letters
   domain = domain.strip().lower()
 
@@ -9,8 +9,8 @@ def evaluate_domain(domain, denylist):
     if domain == blocked_domain:
       return "BLOCK"
     # if domain of subdomain is present in the denylist list return BLOCK
-    else if domain.endswith("." + blocked_domain):
+    elif domain.endswith("." + blocked_domain):
       return "BLOCK"
-    # if domain not present in the denylist list return ALLOW
-    else:
-      return "ALLOW"
+  # if domain not present in the denylist list return ALLOW
+  return "ALLOW"
+    
