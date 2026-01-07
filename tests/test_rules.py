@@ -37,6 +37,5 @@ def test_subdomain_behavior_v1():
     denylist = ["porn.com"]
     domain = "sub.porn.com"
 
-    # result = evaluate_domain(domain, denylist)
-    # assert result == "BLOCK"
-    assert True
+    result = evaluate_domain(domain, denylist)
+    assert result == "BLOCK"
