@@ -29,9 +29,8 @@ def test_domain_is_trimmed_of_whitespace():
     denylist = ["porn.com"]
     domain = "   porn.com  "
 
-    # result = evaluate_domain(domain, denylist)
-    # assert result == "BLOCK"
-    assert True
+    result = evaluate_domain(domain, denylist)
+    assert result == "BLOCK"
 
 
 def test_subdomain_behavior_v1():
