@@ -36,7 +36,7 @@ def handle_dns_query(request_bytes: bytes) -> bytes:
 
     Planned logic (next step with dnslib):
       1) Parse request_bytes into a DNSRecord
-      2) Extract queried domain (qname) as a string
+      2) domain = extract_domain_from_query(request_bytes)
       3) decision = evaluate_domain(domain, DENYLIST)
       4) If decision == "BLOCK": build NXDOMAIN response
       5) Else: (POC) build a minimal "allowed" response strategy (defined later)
