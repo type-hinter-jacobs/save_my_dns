@@ -1,0 +1,5 @@
+-> DNS server runs locally
+-> Listens on high port (5353)
+-> Make use of the rule engine for decisions
+-> Targeted testing only
+-> No changes/configurations to system DNS settings
