@@ -14,11 +14,36 @@ Port it will be listening on:
 - Use a high port first (e.g., 5353) to avoid admin privileges
 """
 
-# from src.rules import evaluate_domain
+from src.rules import evaluate_domain
+# from dnslib import ...
 
 # DNS POC configuration
 BIND_HOST = "127.0.0.1"
 BIND_PORT = 5353
+
+# list containg domain names that should be blocked
+DENYLIST = ["porn.com"]
+
+def handle_dns_query(request_bytes: bytes) -> bytes:
+    """
+    Handle a single DNS request
+
+    Input:
+      - request_bytes: raw UDP payload containing a DNS query
+
+    Output:
+      - response_bytes: raw UDP payload containing a DNS response
+
+    Planned logic (next step with dnslib):
+      1) Parse request_bytes into a DNSRecord
+      2) Extract queried domain (qname) as a string
+      3) decision = evaluate_domain(domain, DENYLIST)
+      4) If decision == "BLOCK": build NXDOMAIN response
+      5) Else: (POC) build a minimal "allowed" response strategy (defined later)
+      6) Return response_bytes
+    """
+    raise NotImplementedError("DNS handler not implemented yet (dnslib step next).")
+    
 
 def run_server():
     """
