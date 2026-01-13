@@ -1,4 +1,3 @@
-# To be implemented:
 from src.rules import evaluate_domain
 
 def test_blocked_domain_returns_block():

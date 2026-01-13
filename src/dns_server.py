@@ -13,9 +13,10 @@ Port it will be listening on:
 - POC will be local-only (bind to 127.0.0.1)
 - Use a high port first (e.g., 5353) to avoid admin privileges
 """
-
+from dnslib import DNSRecord
 from src.rules import evaluate_domain
-# from dnslib import ...
+from src.dns_parsing import extract_domain_from_query
+
 
 # DNS POC configuration
 BIND_HOST = "127.0.0.1"
@@ -42,6 +43,10 @@ def handle_dns_query(request_bytes: bytes) -> bytes:
       5) Else: (POC) build a minimal "allowed" response strategy (defined later)
       6) Return response_bytes
     """
+    domain = extract_domain_from_query(request_bytes=request_bytes)
+    decision = evaluate_domain(domain=domain, denylist=DENYLIST)
+    print(f"{domain} -> {decision}")
+
     raise NotImplementedError("DNS handler not implemented yet (dnslib step next).")
     
 
