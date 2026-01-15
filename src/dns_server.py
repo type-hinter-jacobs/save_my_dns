@@ -34,20 +34,18 @@ def handle_dns_query(request_bytes: bytes) -> bytes:
 
     Output:
       - response_bytes: raw UDP payload containing a DNS response
-
-    Planned logic (next step with dnslib):
-      1) Parse request_bytes into a DNSRecord
-      2) domain = extract_domain_from_query(request_bytes)
-      3) decision = evaluate_domain(domain, DENYLIST)
-      4) If decision == "BLOCK": build NXDOMAIN response
-      5) Else: (POC) build a minimal "allowed" response strategy (defined later)
-      6) Return response_bytes
     """
     domain = extract_domain_from_query(request_bytes=request_bytes)
     decision = evaluate_domain(domain=domain, denylist=DENYLIST)
     print(f"{domain} -> {decision}")
-
-    raise NotImplementedError("DNS handler not implemented yet (dnslib step next).")
+    if decision == "BLOCK":
+        request_record = DNSRecord.parse(request_bytes)
+        response_record = request_record.reply()
+        response_record.header.rcode = 3
+        response_bytes = response_record.pack()
+        return response_bytes
+    else:
+        raise NotImplementedError("DNS handler not implemented yet (dnslib step next).")
     
 
 def run_server():
