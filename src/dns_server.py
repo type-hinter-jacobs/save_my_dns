@@ -16,6 +16,7 @@ Port it will be listening on:
 from dnslib import DNSRecord
 from src.rules import evaluate_domain
 from src.dns_parsing import extract_domain_from_query
+from src.dns_forwarding import forward_to_upstream
 
 
 # DNS POC configuration
@@ -24,6 +25,7 @@ BIND_PORT = 5353
 
 # list containg domain names that should be blocked
 DENYLIST = ["porn.com"]
+
 
 def handle_dns_query(request_bytes: bytes) -> bytes:
     """
@@ -45,8 +47,7 @@ def handle_dns_query(request_bytes: bytes) -> bytes:
         response_bytes = response_record.pack()
         return response_bytes
     else:
-        raise NotImplementedError("DNS handler not implemented yet (dnslib step next).")
-    
+        return forward_to_upstream(request_bytes=request_bytes)
 
 def run_server():
     """
