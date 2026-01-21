@@ -32,7 +32,7 @@ Testing Tools
 
 -> Cmd Prompt
 
--> nslookup
+-> nslookup did not work for DNS testing. A python UDP query client was created and used to test DNS
 
 -> Python runtime
 
