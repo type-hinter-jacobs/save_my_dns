@@ -13,10 +13,12 @@ Port it will be listening on:
 - POC will be local-only (bind to 127.0.0.1)
 - Use a high port first (e.g., 5353) to avoid admin privileges
 """
+
 from dnslib import DNSRecord
 from src.rules import evaluate_domain
 from src.dns_parsing import extract_domain_from_query
 from src.dns_forwarding import forward_to_upstream
+import socket
 
 
 # DNS POC configuration
@@ -47,7 +49,16 @@ def handle_dns_query(request_bytes: bytes) -> bytes:
         response_bytes = response_record.pack()
         return response_bytes
     else:
-        return forward_to_upstream(request_bytes=request_bytes)
+        try:
+            return forward_to_upstream(request_bytes=request_bytes)
+        except (socket.timeout, OSError):
+            request_record = DNSRecord.parse(request_bytes)
+            response_record = request_record.reply()
+            response_record.header.rcode = 2
+            response_bytes = response_record.pack()
+            return response_bytes
+
+
 
 def run_server():
     """
