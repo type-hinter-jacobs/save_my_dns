@@ -23,7 +23,7 @@ import socket
 
 # DNS POC configuration
 BIND_HOST = "127.0.0.1"
-BIND_PORT = 5353
+BIND_PORT = 5300
 
 # list containg domain names that should be blocked
 DENYLIST = ["porn.com"]
@@ -61,14 +61,23 @@ def handle_dns_query(request_bytes: bytes) -> bytes:
 
 
 def run_server():
-    """
-    POC entrypoint
-    - will start listening on (BIND_HOST, BIND_PORT)
-    - will receive DNS queries
-    - will call evaluate_domain()
-    - and send back DNS responses
-    """
-    raise NotImplementedError("DNS server not implemented yet.")
+    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    udp_socket.bind((BIND_HOST, BIND_PORT))
+
+    print("Server started, waiting for UDP packets...")
+    print(f"Listening on ({BIND_HOST}:{BIND_PORT})")
+
+    while True:
+        try:
+            print("Waiting for query...")
+            data, addr = udp_socket.recvfrom(4096)
+            print(f"Received {len(data)} bytes from {addr}")
+            response_bytes = handle_dns_query(request_bytes=data)
+            print(f"Sending {len(response_bytes)} bytes back to {addr}")
+            udp_socket.sendto(response_bytes, addr)
+        except Exception as e:
+            print(f"Error handling request from {addr}: {e}")
 
 
 if __name__ == "__main__":
