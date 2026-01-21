@@ -1,6 +1,6 @@
 -> DNS server runs locally
 
--> Listens on high port (5353)
+-> Listens on high port (5300)
 
 -> For ALLOW queries, bytes are forwarded to upstream DNS (1.1.1.1:53) via UDP with timeout
 
