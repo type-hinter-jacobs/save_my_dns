@@ -52,3 +52,20 @@ class SQLAlchemyDenylistRepository:
         finally:
             if session is not None:
                 session.close()
+
+    def set_enabled(self, domain, enabled):
+        session = None
+        try:
+            domain = BlockedDomain.normalise_domain(raw=domain)
+            session = self._session_factory()
+            query = select(BlockedDomain).where(BlockedDomain.domain == domain)
+            row = session.scalars(query).first()
+            if row is not None:
+                row.enabled = enabled
+                session.commit()
+            else:
+                raise DomainNotFound()
+        finally:
+            if session is not None:
+                session.close()
+
