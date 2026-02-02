@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from src.models import Base
 from src.repository.denylist import SQLAlchemyDenylistRepository
-from src.repository.exceptions import DomainAlreadyBlocked
+from src.repository.exceptions import DomainAlreadyBlocked, DomainNotFound
 
 @pytest.fixture()
 def db_url(tmp_path):
@@ -41,3 +41,8 @@ def test_add_duplicate_domain_raises_domainalreadyblocked(session_factory):
     repo.add("porn.com")
     with pytest.raises(DomainAlreadyBlocked):
         repo.add("porn.com")
+
+def test_remove_missing_domain_raises_domainnotfound(session_factory):
+    repo = SQLAlchemyDenylistRepository(session_factory)
+    with pytest.raises(DomainNotFound):
+        repo.remove("porn.com")
