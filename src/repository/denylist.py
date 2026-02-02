@@ -1,4 +1,6 @@
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from src.repository.exceptions import DomainAlreadyBlocked
 from src.models import BlockedDomain
 
 class SQLAlchemyDenylistRepository:
@@ -12,6 +14,10 @@ class SQLAlchemyDenylistRepository:
             session = self._session_factory()
             session.add(new_entry)
             session.commit()
+        except IntegrityError:
+            if session is not None:
+                session.rollback()
+            raise DomainAlreadyBlocked()
         finally:
             if session is not None:
                 session.close()
