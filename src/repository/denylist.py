@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from src.repository.exceptions import DomainAlreadyBlocked
+from src.repository.exceptions import DomainAlreadyBlocked, DomainNotFound
 from src.models import BlockedDomain
 
 class SQLAlchemyDenylistRepository:
@@ -22,13 +22,29 @@ class SQLAlchemyDenylistRepository:
             if session is not None:
                 session.close()
 
+    def remove(self, domain):
+        session = None
+        try:
+            domain = BlockedDomain.normalise_domain(raw=domain)
+            session = self._session_factory()
+            query = select(BlockedDomain).where(BlockedDomain.domain == domain)
+            row = session.scalars(query).first()
+            if row is not None:
+                session.delete(row)
+                session.commit()
+            else:
+                raise DomainNotFound()
+        finally:
+            if session is not None:
+                session.close()
+
     def is_blocked(self, domain):
         session = None
         try:
             domain = BlockedDomain.normalise_domain(raw=domain)
             session = self._session_factory()
             query = select(BlockedDomain).where(BlockedDomain.domain == domain, BlockedDomain.enabled.is_(True))
-            row = session.execute(query).first()
+            row = session.scalars(query).first()
             if row is not None:
                 return True
             else:
