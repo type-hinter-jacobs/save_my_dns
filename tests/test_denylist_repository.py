@@ -46,3 +46,9 @@ def test_remove_missing_domain_raises_domainnotfound(session_factory):
     repo = SQLAlchemyDenylistRepository(session_factory)
     with pytest.raises(DomainNotFound):
         repo.remove("porn.com")
+
+def test_disable_domain_unblocks_it(session_factory):
+    repo = SQLAlchemyDenylistRepository(session_factory)
+    repo.add("porn.com")
+    repo.set_enabled("porn.com", False)
+    assert repo.is_blocked("porn.com") is False
