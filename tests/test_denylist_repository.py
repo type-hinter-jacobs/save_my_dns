@@ -1,0 +1,66 @@
+import pytest
+from sqlalchemy import create_engine, except_
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import IntegrityError
+from src.models import Base
+from src.repository.denylist import SQLAlchemyDenylistRepository
+from src.repository.exceptions import DomainAlreadyBlocked, DomainNotFound
+
+@pytest.fixture()
+def db_url(tmp_path):
+    db_file = tmp_path / "test.db"
+    return f"sqlite:///{db_file}"
+
+@pytest.fixture()
+def engine(db_url):
+    db_engine = create_engine(db_url)
+    return db_engine
+
+@pytest.fixture()
+def session_factory(engine):
+    Base.metadata.create_all(engine)
+    return sessionmaker(bind=engine)
+
+
+def test_can_it_open(session_factory):
+    session = session_factory()
+    session.close()
+    assert session is not None
+
+def test_add_domain(session_factory):
+    repo = SQLAlchemyDenylistRepository(session_factory)
+    repo.add("porn.com")
+    assert repo.is_blocked("porn.com") is True
+
+def test_is_blocked_returns_false_when_domain_missing(session_factory):
+    repo = SQLAlchemyDenylistRepository(session_factory)
+    assert repo.is_blocked("porn.com") is False
+
+def test_add_duplicate_domain_raises_domainalreadyblocked(session_factory):
+    repo = SQLAlchemyDenylistRepository(session_factory)
+    repo.add("porn.com")
+    with pytest.raises(DomainAlreadyBlocked):
+        repo.add("porn.com")
+
+def test_remove_missing_domain_raises_domainnotfound(session_factory):
+    repo = SQLAlchemyDenylistRepository(session_factory)
+    with pytest.raises(DomainNotFound):
+        repo.remove("porn.com")
+
+def test_disable_domain_unblocks_it(session_factory):
+    repo = SQLAlchemyDenylistRepository(session_factory)
+    repo.add("porn.com")
+    repo.set_enabled("porn.com", False)
+    assert repo.is_blocked("porn.com") is False
+
+def test_reenable_domain_blocks_again(session_factory):
+    repo = SQLAlchemyDenylistRepository(session_factory)
+    repo.add("porn.com")
+    repo.set_enabled("porn.com", False)
+    repo.set_enabled("porn.com", True)
+    assert repo.is_blocked("porn.com") is True
+
+def test_set_enabled_missing_domain_raises_domainnotfound(session_factory):
+    repo = SQLAlchemyDenylistRepository(session_factory)
+    with pytest.raises(DomainNotFound):
+        repo.set_enabled("porn.com", False)
