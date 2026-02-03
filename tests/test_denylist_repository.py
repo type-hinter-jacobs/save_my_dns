@@ -52,3 +52,15 @@ def test_disable_domain_unblocks_it(session_factory):
     repo.add("porn.com")
     repo.set_enabled("porn.com", False)
     assert repo.is_blocked("porn.com") is False
+
+def test_reenable_domain_blocks_again(session_factory):
+    repo = SQLAlchemyDenylistRepository(session_factory)
+    repo.add("porn.com")
+    repo.set_enabled("porn.com", False)
+    repo.set_enabled("porn.com", True)
+    assert repo.is_blocked("porn.com") is True
+
+def test_set_enabled_missing_domain_raises_domainnotfound(session_factory):
+    repo = SQLAlchemyDenylistRepository(session_factory)
+    with pytest.raises(DomainNotFound):
+        repo.set_enabled("porn.com", False)
