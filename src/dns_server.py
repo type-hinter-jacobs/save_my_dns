@@ -15,21 +15,21 @@ Port it will be listening on:
 """
 
 from dnslib import DNSRecord
-from src.rules import evaluate_domain
 from src.dns_parsing import extract_domain_from_query
 from src.dns_forwarding import forward_to_upstream
+from src.repository.denylist import SQLAlchemyDenylistRepository
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from src.models import Base
 import socket
 
 
 # DNS POC configuration
 BIND_HOST = "127.0.0.1"
 BIND_PORT = 5300
+DATABASE_URL = "sqlite:///data/save_my_dns.db"
 
-# list containg domain names that should be blocked
-DENYLIST = ["porn.com"]
-
-
-def handle_dns_query(request_bytes: bytes) -> bytes:
+def handle_dns_query(request_bytes: bytes, repo: SQLAlchemyDenylistRepository) -> bytes:
     """
     Handle a single DNS request
 
@@ -40,9 +40,9 @@ def handle_dns_query(request_bytes: bytes) -> bytes:
       - response_bytes: raw UDP payload containing a DNS response
     """
     domain = extract_domain_from_query(request_bytes=request_bytes)
-    decision = evaluate_domain(domain=domain, denylist=DENYLIST)
-    print(f"{domain} -> {decision}")
-    if decision == "BLOCK":
+    blocked = repo.is_blocked(domain=domain)
+    print(f"{domain} -> {blocked}")
+    if blocked:
         request_record = DNSRecord.parse(request_bytes)
         response_record = request_record.reply()
         response_record.header.rcode = 3
@@ -58,12 +58,15 @@ def handle_dns_query(request_bytes: bytes) -> bytes:
             response_bytes = response_record.pack()
             return response_bytes
 
-
-
 def run_server():
     udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     udp_socket.bind((BIND_HOST, BIND_PORT))
+
+    engine = create_engine(DATABASE_URL)
+    Base.metadata.create_all(engine)
+    session_factory = sessionmaker(bind=engine)
+    repo = SQLAlchemyDenylistRepository(session_factory)
 
     print("Server started, waiting for UDP packets...")
     print(f"Listening on ({BIND_HOST}:{BIND_PORT})")
@@ -73,7 +76,7 @@ def run_server():
             print("Waiting for query...")
             data, addr = udp_socket.recvfrom(4096)
             print(f"Received {len(data)} bytes from {addr}")
-            response_bytes = handle_dns_query(request_bytes=data)
+            response_bytes = handle_dns_query(request_bytes=data, repo=repo)
             print(f"Sending {len(response_bytes)} bytes back to {addr}")
             udp_socket.sendto(response_bytes, addr)
         except Exception as e:
