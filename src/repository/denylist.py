@@ -3,6 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from src.repository.exceptions import DomainAlreadyBlocked, DomainNotFound
 from src.models import BlockedDomain
 
+
 class SQLAlchemyDenylistRepository:
     def __init__(self, session_factory):
         self._session_factory = session_factory
