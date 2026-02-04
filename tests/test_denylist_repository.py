@@ -1,25 +1,6 @@
 import pytest
-from sqlalchemy import create_engine, except_
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import IntegrityError
-from src.models import Base
 from src.repository.denylist import SQLAlchemyDenylistRepository
 from src.repository.exceptions import DomainAlreadyBlocked, DomainNotFound
-
-@pytest.fixture()
-def db_url(tmp_path):
-    db_file = tmp_path / "test.db"
-    return f"sqlite:///{db_file}"
-
-@pytest.fixture()
-def engine(db_url):
-    db_engine = create_engine(db_url)
-    return db_engine
-
-@pytest.fixture()
-def session_factory(engine):
-    Base.metadata.create_all(engine)
-    return sessionmaker(bind=engine)
 
 
 def test_can_it_open(session_factory):
