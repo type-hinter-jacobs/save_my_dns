@@ -7,5 +7,7 @@ requires-python = ">=3.10"
 dependencies = [
     "dnslib",
     "sqlalchemy>=2.0",
-    "pytest"
+    "pytest",
+    "fastapi",
+    "uvicorn[standard]",
 ]
