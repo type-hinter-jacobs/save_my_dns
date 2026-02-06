@@ -70,3 +70,15 @@ class SQLAlchemyDenylistRepository:
             if session is not None:
                 session.close()
 
+    def list_all(self):
+        session = None
+        try:
+            session = self._session_factory()
+            query = select(BlockedDomain).order_by(BlockedDomain.domain)
+            domains = session.scalars(query).all()
+            return domains
+        finally:
+            if session is not None:
+                session.close()
+
+
