@@ -45,3 +45,13 @@ def test_set_enabled_missing_domain_raises_domainnotfound(session_factory):
     repo = SQLAlchemyDenylistRepository(session_factory)
     with pytest.raises(DomainNotFound):
         repo.set_enabled("porn.com", False)
+
+def test_list_all_returns_domains_sorted_alphabetically_with_enabled_flags(session_factory):
+    repo = SQLAlchemyDenylistRepository(session_factory)
+    repo.add("  yyy.com")
+    repo.add("aAa.com  ")
+    repo.add("CCc.com")
+    repo.set_enabled("ccc.com", False)
+    items = repo.list_all()
+    domains = [item.domain for item in items]
+    assert domains == ["aaa.com", "ccc.com", "yyy.com"]
