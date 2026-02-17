@@ -10,5 +10,6 @@ dependencies = [
     "pytest",
     "fastapi",
     "uvicorn[standard]",
-    "httpx"
+    "httpx",
+    "jinja2"
 ]
