@@ -18,16 +18,13 @@ from dnslib import DNSRecord
 from src.dns_parsing import extract_domain_from_query
 from src.dns_forwarding import forward_to_upstream
 from src.repository.denylist import SQLAlchemyDenylistRepository
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from src.models import Base
+from src.wiring import init_db, build_engine, build_session_factory, build_repo
 import socket
 
 
 # DNS POC configuration
 BIND_HOST = "127.0.0.1"
 BIND_PORT = 5300
-DATABASE_URL = "sqlite:///data/save_my_dns.db"
 
 def handle_dns_query(request_bytes: bytes, repo: SQLAlchemyDenylistRepository) -> bytes:
     """
@@ -63,10 +60,10 @@ def run_server():
     udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     udp_socket.bind((BIND_HOST, BIND_PORT))
 
-    engine = create_engine(DATABASE_URL)
-    Base.metadata.create_all(engine)
-    session_factory = sessionmaker(bind=engine)
-    repo = SQLAlchemyDenylistRepository(session_factory)
+    engine = build_engine()
+    init_db(engine=engine)
+    session_factory = build_session_factory(engine=engine)
+    repo = build_repo(session_factory=session_factory)
 
     print("Server started, waiting for UDP packets...")
     print(f"Listening on ({BIND_HOST}:{BIND_PORT})")

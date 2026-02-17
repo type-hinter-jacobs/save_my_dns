@@ -80,5 +80,3 @@ class SQLAlchemyDenylistRepository:
         finally:
             if session is not None:
                 session.close()
-
-
