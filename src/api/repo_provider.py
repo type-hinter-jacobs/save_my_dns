@@ -1,13 +1,10 @@
-from src.models import Base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
 from src.repository.denylist import SQLAlchemyDenylistRepository
+from src.wiring import init_db, build_engine, build_session_factory, build_repo
 
-DATABASE_URL = "sqlite:///data/save_my_dns.db"
 
-engine = create_engine(DATABASE_URL)
-Base.metadata.create_all(engine)
-session_factory = sessionmaker(bind=engine)
+engine = build_engine()
+init_db(engine=engine)
+session_factory = build_session_factory(engine=engine)
 
 def get_repo() -> SQLAlchemyDenylistRepository:
-    return SQLAlchemyDenylistRepository(session_factory)
+    return build_repo(session_factory=session_factory)
