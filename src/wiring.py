@@ -1,10 +1,13 @@
+from dotenv import load_dotenv
+load_dotenv()
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.repository.denylist import SQLAlchemyDenylistRepository
 from src.models import Base
+import os
 
 
-DATABASE_URL = "sqlite:///data/save_my_dns.db"
+DATABASE_URL = os.environ.get("SAVE_MY_DNS_DATABASE_URL")
 
 def init_db(engine):
     """
