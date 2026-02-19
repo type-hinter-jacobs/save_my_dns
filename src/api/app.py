@@ -45,5 +45,3 @@ def delete_blocked_domain(domain: str, repo: SQLAlchemyDenylistRepository = Depe
 def get_blocked_domains(repo: SQLAlchemyDenylistRepository = Depends(get_repo)):
     items = repo.list_all()
     return items
-
-# python -m uvicorn src.api.app:app --reload --port 8000
