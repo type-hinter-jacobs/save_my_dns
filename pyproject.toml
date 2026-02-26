@@ -11,5 +11,7 @@ dependencies = [
     "fastapi",
     "uvicorn[standard]",
     "httpx",
-    "jinja2"
+    "jinja2",
+    "python-multipart",
+    "itsdangerous"
 ]
