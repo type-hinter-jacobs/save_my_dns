@@ -67,5 +67,4 @@ Save My DNS is a local DNS-based content filtering system designed to block spec
    - ALLOWED -> response gets forwarded
 
 ### What's Next
-- Implementation of Admin UI (User Interface)
 - Service Integration
