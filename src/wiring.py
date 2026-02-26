@@ -2,9 +2,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.repository.denylist import SQLAlchemyDenylistRepository
 from src.models import Base
+import os
 
-
-DATABASE_URL = "sqlite:///data/save_my_dns.db"
 
 def init_db(engine):
     """
@@ -18,8 +17,13 @@ def build_engine(db_url: str | None = None):
     """
     create and return a SQLAlchemy Engine bound to the passed database URL
     """
+    DATABASE_URL = os.environ.get("SAVE_MY_DNS_DATABASE_URL")
+
     if db_url is None:
-        db_url = DATABASE_URL
+        if DATABASE_URL is None:
+            db_url = "sqlite:///data/save_my_dns.db"
+        else:
+            db_url = DATABASE_URL
     engine = create_engine(url=db_url)
     return engine
 
