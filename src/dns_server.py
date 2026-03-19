@@ -1,41 +1,19 @@
-"""
-Purpose of the DNS POC:
-
-- Run a minimal local DNS responder that receives DNS queries
-- Extracts the requested domain name
-- Applies the existing rule engine: evaluate_domain(domain, denylist)
-- Responds differently for ALLOW vs BLOCK
-- Logs the decision (domain -> ALLOW/BLOCK)
-
-
-Port it will be listening on:
-
-- POC will be local-only (bind to 127.0.0.1)
-- Use a high port first (e.g., 5353) to avoid admin privileges
-"""
-
 from dnslib import DNSRecord
 from src.dns_parsing import extract_domain_from_query
 from src.dns_forwarding import forward_to_upstream
 from src.repository.denylist import SQLAlchemyDenylistRepository
 from src.wiring import init_db, build_engine, build_session_factory, build_repo
 import socket
+import logging
 
 
-# DNS POC configuration
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+logger = logging.getLogger(__name__)
+
 BIND_HOST = "127.0.0.1"
 BIND_PORT = 5300
 
 def handle_dns_query(request_bytes: bytes, repo: SQLAlchemyDenylistRepository) -> bytes:
-    """
-    Handle a single DNS request
-
-    Input:
-      - request_bytes: raw UDP payload containing a DNS query
-
-    Output:
-      - response_bytes: raw UDP payload containing a DNS response
-    """
     domain = extract_domain_from_query(request_bytes=request_bytes)
     blocked = repo.is_blocked(domain=domain)
     print(f"{domain} -> {blocked}")
@@ -56,28 +34,40 @@ def handle_dns_query(request_bytes: bytes, repo: SQLAlchemyDenylistRepository) -
             return response_bytes
 
 def run_server():
-    udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    udp_socket.bind((BIND_HOST, BIND_PORT))
-
-    engine = build_engine()
-    init_db(engine=engine)
-    session_factory = build_session_factory(engine=engine)
-    repo = build_repo(session_factory=session_factory)
-
-    print("Server started, waiting for UDP packets...")
-    print(f"Listening on ({BIND_HOST}:{BIND_PORT})")
-
-    while True:
-        try:
-            print("Waiting for query...")
-            data, addr = udp_socket.recvfrom(4096)
-            print(f"Received {len(data)} bytes from {addr}")
-            response_bytes = handle_dns_query(request_bytes=data, repo=repo)
-            print(f"Sending {len(response_bytes)} bytes back to {addr}")
-            udp_socket.sendto(response_bytes, addr)
-        except Exception as e:
-            print(f"Error handling request from {addr}: {e}")
+    udp_socket = None
+    try:
+        udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        engine = build_engine()
+        init_db(engine=engine)
+        session_factory = build_session_factory(engine=engine)
+        repo = build_repo(session_factory=session_factory)
+        udp_socket.bind((BIND_HOST, BIND_PORT))
+        udp_socket.settimeout(1.0)
+        logger.info("Server started, waiting for UDP packets...")
+        logger.info(f"Listening on ({BIND_HOST}:{BIND_PORT})")
+    except Exception as e:
+        logger.error(f"Could not start server: {e}")
+        return
+    try:
+        while True:
+            addr = None
+            try:
+                logger.debug("Waiting for query...")
+                data, addr = udp_socket.recvfrom(4096)
+                logger.debug(f"Received {len(data)} bytes from {addr}")
+                response_bytes = handle_dns_query(request_bytes=data, repo=repo)
+                logger.debug(f"Sending {len(response_bytes)} bytes back to {addr}")
+                udp_socket.sendto(response_bytes, addr)
+            except socket.timeout:
+                continue
+            except Exception as e:
+                logger.error(f"Error handling request from {addr}: {e}")
+    except KeyboardInterrupt:
+        logger.info("Shutting down server...")
+    finally:
+        if udp_socket is not None:
+            udp_socket.close()
 
 
 if __name__ == "__main__":
