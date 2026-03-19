@@ -46,8 +46,8 @@ def run_server():
         udp_socket.settimeout(1.0)
         logger.info("Server started, waiting for UDP packets...")
         logger.info(f"Listening on ({BIND_HOST}:{BIND_PORT})")
-    except Exception as e:
-        logger.error(f"Could not start server: {e}")
+    except Exception:
+        logger.exception(f"Could not start server")
         return
     try:
         while True:
@@ -61,8 +61,8 @@ def run_server():
                 udp_socket.sendto(response_bytes, addr)
             except socket.timeout:
                 continue
-            except Exception as e:
-                logger.error(f"Error handling request from {addr}: {e}")
+            except Exception:
+                logger.exception(f"Error handling request from {addr}")
     except KeyboardInterrupt:
         logger.info("Shutting down server...")
     finally:
