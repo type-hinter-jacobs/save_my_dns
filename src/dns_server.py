@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+import os
 from dnslib import DNSRecord
 from src.dns_parsing import extract_domain_from_query
 from src.dns_forwarding import forward_to_upstream
@@ -10,8 +13,8 @@ import logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
-BIND_HOST = "127.0.0.1"
-BIND_PORT = 5300
+BIND_HOST = os.environ.get("SAVE_MY_DNS_BIND_HOST", "127.0.0.1")
+BIND_PORT = int(os.environ.get("SAVE_MY_DNS_BIND_PORT", "5300"))
 
 def handle_dns_query(request_bytes: bytes, repo: SQLAlchemyDenylistRepository) -> bytes:
     domain = extract_domain_from_query(request_bytes=request_bytes)
@@ -61,6 +64,8 @@ def run_server():
                 udp_socket.sendto(response_bytes, addr)
             except socket.timeout:
                 continue
+            except KeyboardInterrupt:
+                raise
             except Exception:
                 logger.exception(f"Error handling request from {addr}")
     except KeyboardInterrupt:
